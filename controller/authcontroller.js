@@ -1,16 +1,16 @@
 //const { v4: uuidv4 } = require('uuid');
 const bcrypt = require("bcrypt");
-const db = require("../models");
-const user = require("../models/user");
+const { User } = require('../models');
 const jwt = require("jsonwebtoken")
+const constants = require("../constants/constants")
 const RESPONSE = constants.RESPONSE;
-const constants = require("../constants/constants.js")
+const sendMail = require("../services/mail.service")
 const { Op } = require('sequelize');
 //const  AccessToken=require( '../models/index.js');
 
 //import { where } from 'sequelize';
 
-const User = db.User;
+
 const register = async (req, res) => {
     try {
         const { firstName, lastName, email, password } = req.body;
@@ -20,6 +20,7 @@ const register = async (req, res) => {
         if (existing_email) {
             return res.status(RESPONSE.BAD_REQUEST.statusCode).json({
                 name: RESPONSE.BAD_REQUEST.name,
+                message: "email already exists"
             });
         }
         // Create a new user in the database
@@ -32,11 +33,14 @@ const register = async (req, res) => {
         });
         console.log(newUser)
 
-        res.status(201).json({ message: 'User registered successfully' });
+        return res.status(RESPONSE.SUCCESS.statusCode).json({
+            name: RESPONSE.SUCCESS.name,
+            message: "Register successfull"
+        });
         //res.status(200).json({ message: 'Login successful', savedToken,updateToken});
 
     } catch (error) {
-
+        console.log(error)
         return res.status(RESPONSE.INTERNAL_SERVER_ERROR.statusCode).json({ name: RESPONSE.INTERNAL_SERVER_ERROR.name, message: RESPONSE.INTERNAL_SERVER_ERROR.message });
 
 
@@ -47,11 +51,16 @@ const login = async (req, res) => {
         const { email, password } = req.body
         const loginuser = await User.findOne({ where: { email } });
         if (!loginuser) {
-            res.status(404).json({ message: 'User not found' })
+            return res.status(RESPONSE.BAD_REQUEST.statusCode).json({
+                name: RESPONSE.BAD_REQUEST.name,
+            });
         }
         // console.log("Scope in JWT:", loginuser.scope); 
         const isMatch = await bcrypt.compare(password, loginuser.password);
-        if (!isMatch) return res.status(401).json({ message: 'Invalid password' });
+        if (!isMatch) return res.status(RESPONSE.BAD_REQUEST.statusCode).json({
+            name: RESPONSE.BAD_REQUEST.name,
+            message: "Password doesnt match",
+        });
         //   console.log("JWT_SECRET:", process.env.JWT_SECRET);
         //   const token = jwt.sign({ id: loginuser.id, email: loginuser.email,scope:loginuser.scope }, process.env.JWT_SECRET, {
         //       expiresIn: '15m'
@@ -70,7 +79,7 @@ const login = async (req, res) => {
         //   const updateToken=await db.RefreshToken.create({ refreshToken, userId: loginuser.id });
         //   // Save refresh token in DB
 
-        //   res.status(200).json({ message: 'Login successful', savedToken,updateToken});
+        res.status(200).json({ message: 'Login successful' });
     }
     catch (error) {
 
@@ -78,8 +87,68 @@ const login = async (req, res) => {
 
 
     }
-    module.exports = {
-        register, login
-    };
+}
+const forgetPassword = async (req, res) => {
+    try {
+        console.log("api hit")
+        const { email } = req.body
+
+        const existingEmail = await User.findOne({ where: { email } });
+        //  console.log(existingEmail)
+        if (!existingEmail) {
+            return res.status(RESPONSE.BAD_REQUEST.statusCode).json({
+                name: RESPONSE.BAD_REQUEST.name,
+                message: "Invalid email",
+            });
+        }
+        const secret = process.env.SECRET_KEY || ''
+        const token = jwt.sign({ id: existingEmail.id }, secret)
+        const url = `${process.env.RESET_PASSWORD_URL}?token=${token}`
+        const message = `click link below : \n${url}`
+        await User.update(
+            {
+                reset_password_token: token,//set reset password in db
+                reset_expire_token: Date.now() + 15 * 60 * 1000
+            },
+            {
+                where: { id: existingEmail.id }
+            }
+
+        );
+        sendMail(email, message)
+        return res.status(RESPONSE.SUCCESS.statusCode).json({ name: RESPONSE.SUCCESS.name, message: "Email sent successfully" });
+
+    }
+    catch (error) {
+        console.log(error)
+        return res.status(RESPONSE.INTERNAL_SERVER_ERROR.statusCode).json({ name: RESPONSE.INTERNAL_SERVER_ERROR.name, message: RESPONSE.INTERNAL_SERVER_ERROR.message });
+    }
 
 }
+const resetPassword = async (req, res) => {//edit pending
+    const { token } = req.body
+    if (!token) {
+        return res.status(RESPONSE.BAD_REQUEST.statusCode).json({ name: RESPONSE.BAD_REQUEST.name, message: RESPONSE.INTERNAL_SERVER_ERROR.message });
+    }
+    const existingUser = await User.findOne({ where: { reset_password_token: token } })
+    if (!existingUser) {
+        return res.status(RESPONSE.NOT_FOUND.statusCode).json({ name: RESPONSE.NOT_FOUND.name, message: RESPONSE.NOT_FOUND.message })
+    }
+    const validUser = await User.findOne({ where: { reset_expire_token: { [Op.gte]: Date.now() } } })
+    if (!validUser)
+        return res.status(RESPONSE.BAD_REQUEST.statusCode).json({ name: RESPONSE.BAD_REQUEST.name, message: "not a valid user" })
+    let { password, confirm_password } = req.body
+    if (confirm_password !== password)
+        return res.status(RESPONSE.BAD_REQUEST.statusCode).json({ name: RESPONSE.BAD_REQUEST.name, message: "password doesnt match" })
+    password = await bcrypt.hash(password, 10)
+    await User.update(
+        { password: password, isLoginActivated: true },
+        { where: { id: existingUser.id } }
+    )
+    return res.status(RESPONSE.SUCCESS.statusCode).json({ name: RESPONSE.SUCCESS.name, message: "Password changed" })
+
+}
+module.exports = {
+    register, login, forgetPassword, resetPassword
+};
+

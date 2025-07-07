@@ -13,22 +13,35 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  User.init({
-    firstName: DataTypes.STRING,
-    lastName: DataTypes.STRING,
-    email: {
-      type:DataTypes.STRING,
-      unique:true
+ User.init({
+  firstName: DataTypes.STRING,
+  lastName: DataTypes.STRING,
+  email: {
+    type: DataTypes.STRING,
+    unique: true
   },
-    scope: DataTypes.STRING,
-    password: DataTypes.STRING,
-    phone:{
-      type:DataTypes.STRING,
-      unique:true
-  } 
-  }, {
-    sequelize,
-    modelName: 'User',
-  });
+  scope: DataTypes.STRING,
+  password: DataTypes.STRING,
+  phone: {
+    type: DataTypes.STRING,
+    unique: true
+  },
+  reset_password_token: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  reset_expire_token: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  isLoginActivated: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false  // Since it has a default value
+  }
+}, {
+  sequelize,
+  modelName: 'User',
+});
   return User;
 };
