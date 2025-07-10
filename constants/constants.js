@@ -47,6 +47,21 @@ module.exports={
             statusCode: 409,
             name: "Conflict",
             message: "Already exists",
+        },
+        EVENT_CATEGORIES : {
+            MUSIC: 'Music',
+            TECH: 'Tech',
+            SPORTS: 'Sports',
+            ART: 'Art',
+            BUSINESS: 'Business',
+            WORKSHOP: 'Workshop',
+            CONFERENCE: 'Conference',
+        },
+
+        TICKET_TYPES :{
+            GENERAL: 'General',
+            VIP: 'VIP',
+            EARLY_BIRD: 'Early Bird',
         }
     }
 
