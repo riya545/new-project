@@ -48,7 +48,9 @@ module.exports={
             name: "Conflict",
             message: "Already exists",
         },
-        EVENT_CATEGORIES : {
+      
+    },
+      CATEGORIES : {
             MUSIC: 'Music',
             TECH: 'Tech',
             SPORTS: 'Sports',
@@ -62,8 +64,7 @@ module.exports={
             GENERAL: 'General',
             VIP: 'VIP',
             EARLY_BIRD: 'Early Bird',
-        }
-    }
+        },
 
 
 }
