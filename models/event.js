@@ -21,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
     date_and_time: DataTypes.DATE,
     ticket_types: DataTypes.JSONB,
     max_capacity: DataTypes.INTEGER,
+    status: {
+      type: DataTypes.ENUM('active', 'cancelled', 'completed'),
+      defaultValue: 'active',
+    },
     pricing: DataTypes.FLOAT
   }, {
     sequelize,
