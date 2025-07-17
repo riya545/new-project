@@ -67,4 +67,8 @@ module.exports={
         },
 
 
+
+TOKENEXPIRE:{
+    duration:"1h"
+}
 }

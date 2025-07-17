@@ -7,7 +7,7 @@ const RESPONSE = constants.RESPONSE;
 const sendMail = require("../services/mail.service")
 const { Op } = require('sequelize');
 //const  AccessToken=require( '../models/index.js');
-
+const secret_key = process.env.SECRET_KEY;
 //import { where } from 'sequelize';
 
 
@@ -57,10 +57,22 @@ const login = async (req, res) => {
         }
         // console.log("Scope in JWT:", loginuser.scope); 
         const isMatch = await bcrypt.compare(password, loginuser.password);
-        if (!isMatch) return res.status(RESPONSE.BAD_REQUEST.statusCode).json({
+        if (!isMatch) {return res.status(RESPONSE.BAD_REQUEST.statusCode).json({
             name: RESPONSE.BAD_REQUEST.name,
             message: "Password doesnt match",
-        });
+        });}
+         else{
+        const token = jwt.sign(
+          {
+            userId: loginuser._id,
+            name: loginuser.firstName,
+            scope: loginuser.scope,
+          },
+          secret_key,
+          { expiresIn: constants.TOKENEXPIRE.duration }
+        );
+        res.status(200).json({ message: 'Login successful',token :token  });
+    }
         //   console.log("JWT_SECRET:", process.env.JWT_SECRET);
         //   const token = jwt.sign({ id: loginuser.id, email: loginuser.email,scope:loginuser.scope }, process.env.JWT_SECRET, {
         //       expiresIn: '15m'
@@ -79,10 +91,10 @@ const login = async (req, res) => {
         //   const updateToken=await db.RefreshToken.create({ refreshToken, userId: loginuser.id });
         //   // Save refresh token in DB
 
-        res.status(200).json({ message: 'Login successful' });
+        // res.status(200).json({ message: 'Login successful' });
     }
     catch (error) {
-
+              console.log(error)
         return res.status(RESPONSE.INTERNAL_SERVER_ERROR.statusCode).json({ name: RESPONSE.INTERNAL_SERVER_ERROR.name, message: RESPONSE.INTERNAL_SERVER_ERROR.message });
 
 
