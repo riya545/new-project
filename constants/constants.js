@@ -1,8 +1,8 @@
 module.exports={
     scope:{
-    ADMIN: "1",  
-    CUSTOMER: "2",
-    ORGANIZATION:"3"
+        ADMIN: "ADMIN",
+        ORGANIZATION: "ORGANIZER",
+        USER: "USER"
     },
     RESPONSE: {
         SUCCESS: {

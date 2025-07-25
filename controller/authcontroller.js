@@ -29,7 +29,7 @@ const register = async (req, res) => {
             lastName,
             email,
             password: hashedPassword,
-            scope: constants.scope.CUSTOMER
+            role: constants.scope.ORGANIZATION
         });
         console.log(newUser)
 
@@ -66,11 +66,12 @@ const login = async (req, res) => {
           {
             userId: loginuser._id,
             name: loginuser.firstName,
-            scope: loginuser.scope,
+            role: loginuser.role,
           },
           secret_key,
           { expiresIn: constants.TOKENEXPIRE.duration }
         );
+        console.log("role of user while login",loginuser.role)
         res.status(200).json({ message: 'Login successful',token :token  });
     }
         //   console.log("JWT_SECRET:", process.env.JWT_SECRET);

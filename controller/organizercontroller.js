@@ -2,12 +2,12 @@ const db = require('../models');
 const Event = db.Event;
 const constants = require("../constants/constants");
 const event = require('../models/event');
-const RESPONSE = constants.RESPONSE;;
+const RESPONSE = constants.RESPONSE;
 
 const createEvent = async (req, res) => {
     try {
         const { eventName, description, category, eventBanner, dateAndTime, ticketTypes, maxCapacity, pricing } = req.body
-        if (!eventName || !category || !dateAndTime || !ticketTypes || !maxCapacity) {
+        if (!eventName || !category || !dateAndTime || !ticketTypes || !maxCapacity || !pricing) {
             return res.status(RESPONSE.BAD_REQUEST.statusCode).json({
                 name: RESPONSE.BAD_REQUEST.name,
                 message: "Please enter required fields"
@@ -32,8 +32,8 @@ const createEvent = async (req, res) => {
             date_and_time: dateAndTime,
             ticket_types: ticketTypes,
             max_capacity: maxCapacity,
-            pricing: pricing
-            //scope: constants.SCOPE.MANAGER,->do we need this
+            pricing: pricing,
+            role: constants.scope.ORGANIZATION
         });
        
         if (newUser) {
