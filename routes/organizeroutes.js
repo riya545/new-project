@@ -7,7 +7,7 @@ const {scope}=require("../constants/constants")
 const router = express.Router();
 
 router.post("/organize/create", authenticateToken, authorizeRoles(scope.ORGANIZATION), createEvent);
-router.put("/organize/event/:id",authenticateToken,authorizeRoles('organization','admin'),updateEvent)
-router.post("/organize/event/:eventId",authenticateToken,authorizeRoles('organization','admin'),cancelEvent)
+router.put("/organize/event/:id",authenticateToken,authorizeRoles(scope.ORGANIZATION,scope.ADMIN),updateEvent)
+router.post("/organize/event/:eventId",authenticateToken,authorizeRoles(scope.ORGANIZATION,scope.ADMIN),cancelEvent)
 
 module.exports = router;
