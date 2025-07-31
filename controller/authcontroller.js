@@ -13,7 +13,7 @@ const secret_key = process.env.SECRET_KEY;
 
 const register = async (req, res) => {
     try {
-        const { firstName, lastName, email, password } = req.body;
+        const { firstName, lastName, email, password,role} = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
         const existing_email = await User.findOne({ where: { email } });
         //console.log(existing_email)
@@ -29,7 +29,7 @@ const register = async (req, res) => {
             lastName,
             email,
             password: hashedPassword,
-            role: constants.scope.ORGANIZATION
+            role
         });
         console.log(newUser)
 
